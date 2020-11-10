@@ -1,0 +1,256 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2513
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Oblique;}
+{\colortbl;\red255\green255\blue255;\red191\green100\blue38;\red32\green32\blue32;\red88\green118\blue71;
+\red153\green168\blue186;\red133\green96\blue154;\red254\green187\blue91;\red173\green169\blue32;\red86\green132\blue173;
+\red255\green255\blue255;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\csgenericrgb\c74902\c39216\c14902;\csgenericrgb\c12549\c12549\c12549;\csgenericrgb\c34510\c46275\c27843;
+\csgenericrgb\c60000\c65882\c72941;\csgenericrgb\c52157\c37647\c60392;\csgenericrgb\c99608\c73333\c35686;\csgenericrgb\c67843\c66275\c12549;\csgenericrgb\c33725\c51765\c67843;
+\cssrgb\c100000\c100000\c99985;\cssrgb\c100000\c100000\c100000\c0;\cssrgb\c0\c0\c0;\cssrgb\c100000\c100000\c99985\c0;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww21940\viewh16280\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 	UID PICKING+PHOTO (DEUTSCHESPROFIL) firebase storage edition\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 \
+(storage_repo), (user_controller), (profile_view)\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf2 \cb3 import \cf4 'package:firebase_storage/firebase_storage.dart'\cf2 ;\
+import \cf4 'package:firebaseprofiletutorial/locator.dart'\cf2 ;\
+import \cf4 'package:firebaseprofiletutorial/models/user_model.dart'\cf2 ;\
+import \cf4 'package:firebaseprofiletutorial/repository/auth_repo.dart'\cf2 ;\
+\
+class \cf5 StorageRepo \{\
+  FirebaseStorage \cf6 _storage \cf5 =\
+      \cf7 FirebaseStorage\cf5 (storageBucket: \cf4 "gs://profiletutorial-c5ed1.appspot.com"\cf5 )\cf2 ;\
+  \cf5 AuthRepo \cf6 _authRepo \cf5 = locator.get<AuthRepo>()\cf2 ;\
+\
+  \cf5 Future<String> \cf7 uploadFile\cf5 (File file) \cf2 async \cf5 \{\
+    UserModel user = \cf2 await \cf6 _authRepo\cf5 .getUser()\cf2 ;\
+    var \cf5 userId = user.uid\cf2 ;\
+\
+    var \cf5 storageRef = \cf6 _storage\cf5 .ref().child(\cf4 "user/profile/\cf5 $userId\cf4 "\cf5 )\cf2 ;\
+    var \cf5 uploadTask = storageRef.putFile(file)\cf2 ;\
+    var \cf5 completedTask = \cf2 await \cf5 uploadTask.onComplete\cf2 ;\
+    \cf5 String downloadUrl = \cf2 await \cf5 completedTask.ref.getDownloadURL()\cf2 ;\
+    return \cf5 downloadUrl\cf2 ;\
+  \cf5 \}\
+\
+  Future<String> \cf7 getUserProfileImage\cf5 (String uid) \cf2 async \cf5 \{\
+    \cf2 return await \cf6 _storage\cf5 .ref().child(\cf4 "user/profile/\cf5 $uid\cf4 "\cf5 ).getDownloadURL()\cf2 ;\
+  \cf5 \}\
+\}\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\cf2 class \cf5 UserController \{\
+  UserModel \cf6 _currentUser\cf2 ;\
+  \cf5 AuthRepo \cf6 _authRepo \cf5 = locator.get<AuthRepo>()\cf2 ;\
+  \cf5 StorageRepo \cf6 _storageRepo \cf5 = locator.get<StorageRepo>()\cf2 ;\
+  \cf5 Future \cf6 init\cf2 ;\
+\
+  \cf5 UserController() \{\
+    \cf6 init \cf5 = initUser()\cf2 ;\
+  \cf5 \}\
+\
+  Future<UserModel> \cf7 initUser\cf5 () \cf2 async \cf5 \{\
+    \cf6 _currentUser \cf5 = \cf2 await \cf6 _authRepo\cf5 .getUser()\cf2 ;\
+    return \cf6 _currentUser\cf2 ;\
+  \cf5 \}\
+\
+  UserModel \cf2 get \cf6 currentUser \cf5 => \cf6 _currentUser\cf2 ;\
+\
+  \cf5 Future<\cf2 void\cf5 > \cf7 uploadProfilePicture\cf5 (File image) \cf2 async \cf5 \{\
+    \cf6 _currentUser\cf5 .avatarUrl = \cf2 await \cf6 _storageRepo\cf5 .uploadFile(image)\cf2 ;\
+  \cf5 \}\
+\
+  Future<String> \cf7 getDownloadUrl\cf5 () \cf2 async \cf5 \{\
+    \cf2 return await \cf6 _storageRepo\cf5 .getUserProfileImage(\cf6 currentUser\cf5 .uid)\cf2 ;\
+  \cf5 \}\
+\
+  Future<\cf2 void\cf5 > \cf7 signInWithEmailAndPassword\cf5 (\
+      \{String email\cf2 , \cf5 String password\}) \cf2 async \cf5 \{\
+    \cf6 _currentUser \cf5 = \cf2 await \cf6 _authRepo\cf5 .signInWithEmailAndPassword(\
+        email: email\cf2 , \cf5 password: password)\cf2 ;\
+\
+    \cf6 _currentUser\cf5 .avatarUrl = \cf2 await \cf5 getDownloadUrl()\cf2 ;\
+  \cf5 \}\
+\
+  \cf2 void \cf7 updateDisplayName\cf5 (String displayName) \{\
+    \cf6 _currentUser\cf5 .displayName = displayName\cf2 ;\
+    \cf6 _authRepo\cf5 .updateDisplayName(displayName)\cf2 ;\
+  \cf5 \}\
+\}\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\cf2 import \cf4 'dart:io'\cf2 ;\
+\
+import \cf4 'package:firebaseprofiletutorial/locator.dart'\cf2 ;\
+import \cf4 'package:firebaseprofiletutorial/models/user_model.dart'\cf2 ;\
+import \cf4 'package:firebaseprofiletutorial/view_controller/user_controller.dart'\cf2 ;\
+import \cf4 'package:firebaseprofiletutorial/views/profile/avatar.dart'\cf2 ;\
+import \cf4 'package:firebaseprofiletutorial/views/profile/manage_profile_information_widget.dart'\cf2 ;\
+import \cf4 'package:flutter/material.dart'\cf2 ;\
+import \cf4 'package:image_picker/image_picker.dart'\cf2 ;\
+\
+class \cf5 ProfileView \cf2 extends \cf5 StatefulWidget \{\
+  \cf2 static \cf5 String 
+\f1\i \cf6 route 
+\f0\i0 \cf5 = \cf4 "profile-view"\cf2 ;\
+\
+  \cf8 @override\
+  \cf5 _ProfileViewState \cf7 createState\cf5 () => \cf7 _ProfileViewState\cf5 ()\cf2 ;\
+\cf5 \}\
+\
+\cf2 class \cf5 _ProfileViewState \cf2 extends \cf5 State<ProfileView> \{\
+  UserModel \cf6 _currentUser \cf5 = locator.get<UserController>().currentUser\cf2 ;\
+  \cf8 @override\
+  \cf5 Widget \cf7 build\cf5 (BuildContext context) \{\
+    \cf2 return \cf7 Scaffold\cf5 (\
+      body: \cf7 Column\cf5 (\
+        crossAxisAlignment: CrossAxisAlignment.\cf6 stretch\cf2 ,\
+        \cf5 children: <Widget>[\
+          \cf7 Expanded\cf5 (\
+            child: \cf7 Container\cf5 (\
+              decoration: \cf7 BoxDecoration\cf5 (\
+                color: Theme.
+\f1\i \cf7 of
+\f0\i0 \cf5 (context).\cf6 primaryColor\cf2 ,\
+                \cf5 borderRadius: \cf7 BorderRadius\cf5 .\cf7 only\cf5 (\
+                  bottomLeft: \cf7 Radius\cf5 .\cf7 circular\cf5 (\cf9 20.0\cf5 )\cf2 ,\
+                  \cf5 bottomRight: \cf7 Radius\cf5 .\cf7 circular\cf5 (\cf9 20.0\cf5 )\cf2 ,\
+                \cf5 )\cf2 ,\
+              \cf5 )\cf2 ,\
+              \cf5 child: \cf7 Column\cf5 (\
+                mainAxisAlignment: MainAxisAlignment.\cf6 spaceEvenly\cf2 ,\
+                \cf5 children: <Widget>[\
+                  Avatar(\
+                    avatarUrl: \cf6 _currentUser\cf5 ?.avatarUrl\cf2 ,\
+                    \cf5 onTap: () \cf2 async \cf5 \{\
+                      File image = \cf2 await \cf5 ImagePicker.
+\f1\i \cf7 pickImage
+\f0\i0 \cf5 (\
+                          source: ImageSource.\cf6 gallery\cf5 )\cf2 ;\
+\
+                      await \cf5 locator\
+                          .get<UserController>()\
+                          .uploadProfilePicture(image)\cf2 ;\
+\
+                      \cf5 setState(() \{\})\cf2 ;\
+                    \cf5 \}\cf2 ,\
+                  \cf5 )\cf2 ,\
+                  \cf7 Text\cf5 (\
+                      \cf4 "Hi \cf5 $\{\cf6 _currentUser\cf5 .displayName ?? \cf4 'nice to see you here.'\cf5 \}\cf4 "\cf5 )\cf2 ,\
+                \cf5 ]\cf2 ,\
+              \cf5 )\cf2 ,\
+            \cf5 )\cf2 ,\
+          \cf5 )\cf2 ,\
+          \cf7 Expanded\cf5 (\
+            flex: \cf9 2\cf2 ,\
+            \cf5 child: ManageProfileInformationWidget(\
+              currentUser: \cf6 _currentUser\cf2 ,\
+            \cf5 )\cf2 ,\
+          \cf5 )\
+        ]\cf2 ,\
+      \cf5 )\cf2 ,\
+    \cf5 )\cf2 ;\
+  \cf5 \}\
+\}\
+\
+\cf10 \cb11 \
+\cf12 \cb13 AND (Firestore edition) (post_screen) , (profile) \
+\
+\cf2 \cb3 class \cf5 PostScreen \cf2 extends \cf5 StatelessWidget \{\
+  \cf2 final \cf5 String \cf6 userId\cf2 ;\
+  final \cf5 String \cf6 postId\cf2 ;\
+\
+  \cf5 PostScreen(\{\cf2 this\cf5 .\cf6 userId\cf2 , this\cf5 .\cf6 postId\cf5 \})\cf2 ;\
+\
+  \cf8 @override\
+  \cf5 Widget \cf7 build\cf5 (BuildContext context) \{\
+    \cf2 return \cf7 FutureBuilder\cf5 (\
+      future: postsRef\
+          .doc(\cf6 userId\cf5 )\
+          .collection(\cf4 'userPosts'\cf5 )\
+          .doc(\cf6 postId\cf5 )\
+          .get()\cf2 ,\
+      \cf5 builder: (context\cf2 , \cf5 snapshot) \{\
+        \cf2 if \cf5 (!snapshot.\cf6 hasData\cf5 ) \{\
+          \cf2 return \cf5 circularProgress()\cf2 ;\
+        \cf5 \}\
+        Post post = \cf7 Post\cf5 .\cf7 fromDocument\cf5 (snapshot.\cf6 data\cf5 )\cf2 ;\
+        return \cf7 Center\cf5 (\
+          child: \cf7 Scaffold\cf5 (\
+            appBar: header(context\cf2 , \cf5 titleText: post.\cf6 description\cf5 )\cf2 ,\
+            \cf5 body: \cf7 ListView\cf5 (\
+              children: <Widget>[\
+                \cf7 Container\cf5 (\
+                  child: post\cf2 ,\
+                \cf5 )\
+              ]\cf2 ,\
+            \cf5 )\cf2 ,\
+          \cf5 )\cf2 ,\
+        \cf5 )\cf2 ;\
+      \cf5 \}\cf2 ,\
+    \cf5 )\cf2 ;\
+  \cf5 \}\
+\}\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\cf2 class \cf5 Profile \cf2 extends \cf5 StatefulWidget \{\
+  \cf2 final \cf5 String \cf6 profileId\cf2 ;\
+\
+  \cf5 Profile(\{\cf2 this\cf5 .\cf6 profileId\cf5 \})\cf2 ;\
+\
+  \cf8 @override\
+  \cf5 _ProfileState \cf7 createState\cf5 () => \cf7 _ProfileState\cf5 ()\cf2 ;\
+\cf5 \}\
+\
+\cf2 class \cf5 _ProfileState \cf2 extends \cf5 State<Profile> \{\
+  \cf2 final \cf5 String \cf6 currentUserId \cf5 = currentUser?.\cf6 id\cf2 ;\
+  \cf5 String \cf6 postOrientation \cf5 = \cf4 "grid"\cf2 ;\
+  \cf5 bool \cf6 isFollowing \cf5 = \cf2 false;\
+  \cf5 bool \cf6 isLoading \cf5 = \cf2 false;\
+  \cf5 int \cf6 postCount \cf5 = \cf9 0\cf2 ;\
+  \cf5 int \cf6 followerCount \cf5 = \cf9 0\cf2 ;\
+  \cf5 int \cf6 followingCount \cf5 = \cf9 0\cf2 ;\
+  \cf5 List<Post> \cf6 posts \cf5 = []\cf2 ;\
+\
+  \cf8 @override\
+  \cf2 void \cf7 initState\cf5 () \{\
+    \cf2 super\cf5 .initState()\cf2 ;\
+    \cf5 getProfilePosts()\cf2 ;\
+    \cf5 getFollowers()\cf2 ;\
+    \cf5 getFollowing()\cf2 ;\
+    \cf5 checkIfFollowing()\cf2 ;\
+  \cf5 \}\
+}
